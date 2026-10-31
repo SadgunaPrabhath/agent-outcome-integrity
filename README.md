@@ -1,12 +1,10 @@
 # Agent Outcome Integrity Engine (AOIE)
 
-**An independent outcome-verification and recovery layer for AI agents.**
+**Independent outcome verification and safe recovery for tool-using agents.**
 
-AOIE answers one question that agent frameworks and observability tools do not:
+AOIE checks whether an agent's claimed action actually changed persistent state. It compares expected postconditions with independent observations, classifies the result, records supporting evidence, and retries only when failure is known and the action is safe to repeat. AOIE wraps agents; it does not replace them.
 
-> *Did the agent actually achieve the persistent real-world state it claims to have achieved — and if not, can we prove it and recover?*
-
-An AI agent can open a page, click "Save", see a success toast, and report *"Done."* — while the backend state never changed (failed write, stale UI, optimistic rendering, auth failure, wrong target, timeout). AOIE independently verifies the **postcondition** against ground truth (API read-back, database, network, DOM), classifies what really happened, and attempts **safe** recovery. It is agent-agnostic: it wraps agents, it does not replace them.
+For example, an agent may click **Save** and see a success message while the server keeps the old value. AOIE checks the stored state separately, so a successful-looking interface is not treated as proof of completion.
 
 > Status: **early-stage, working MVP.** The engine, controlled demo environment, deterministic benchmark, persistence, REST API, and dashboard are implemented and tested. A **Playwright browser adapter**, an **LLM tool-using adapter** (keyless mock for CI, real Claude backend), the **Visual/Semantic verification tiers**, and a **real LLM semantic-judge backend** are now implemented. Every number below is measured from the included benchmark — nothing is hand-authored.
 
@@ -74,27 +72,56 @@ Full design: [`docs/architecture/overview.md`](docs/architecture/overview.md).
 
 ## Quick start
 
-Requires Python 3.11+ (dev on 3.13) and Node 18+ for the dashboard.
+Requires Python 3.11 or newer. Node.js 18 or newer is needed only for the dashboard. Run the API and dashboard in separate terminals.
 
-```bash
-# 1. Engine + API
+### 1. Install the Python package
+
+PowerShell:
+
+```powershell
 python -m venv .venv
-. .venv/Scripts/activate          # Windows: .venv\Scripts\activate ; Unix: source .venv/bin/activate
-pip install -e ".[dev]"
-pytest -q                          # run the full test suite
-
-# 2. Run the benchmark (produces measured metrics + a report)
-python -m scripts.run_benchmark
-#    -> benchmark/reports/latest.md and latest.json
-
-# 3. Start the API
-uvicorn apps.api.main:app --port 8000
-#    OpenAPI docs at http://localhost:8000/docs
-
-# 4. Start the dashboard (separate terminal)
-cd apps/dashboard && npm install && npm run dev
-#    -> http://localhost:3000  (set NEXT_PUBLIC_API_BASE if the API isn't on :8000)
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
 ```
+
+If PowerShell blocks virtual-environment activation, use its interpreter directly:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+```
+
+### 2. Start the API
+
+From the repository root:
+
+```powershell
+uvicorn apps.api.main:app --reload --port 8000
+```
+
+The API documentation is available at <http://localhost:8000/docs>.
+
+### 3. Start the dashboard
+
+In a second terminal, from the repository root:
+
+```powershell
+Set-Location apps\dashboard
+npm install
+npm run dev
+```
+
+Open <http://localhost:3000>. The dashboard uses `http://localhost:8000` by default. To use another API address, copy `apps/dashboard/.env.example` to `apps/dashboard/.env.local` and set `NEXT_PUBLIC_API_BASE` before starting the dashboard.
+
+### 4. Run a benchmark
+
+From the repository root, with the Python dependencies installed:
+
+```powershell
+python -m scripts.run_benchmark
+```
+
+The command writes measured results to `benchmark/reports/latest.md` and `latest.json`.
 
 Trigger a false-completion run from the API:
 
@@ -184,9 +211,9 @@ Apparent success · Verified success · **False completion rate** · Partial com
 
 ---
 
-## Screenshots
+## Dashboard
 
-The dashboard (`apps/dashboard`) provides Overview, Runs, Run Detail (agent-claim-vs-AOIE-verdict contrast, FSM timeline, verifier table, evidence, recovery), Verification, Benchmarks, and Failure Analysis pages. *(Screenshots to be added.)*
+The dashboard includes Overview, Runs, Run Detail, Verification, Benchmarks, and Failure Analysis pages. Run Detail brings together the agent's claim, AOIE's verdict, execution timeline, verifier results, evidence, and any recovery attempt.
 
 ---
 
