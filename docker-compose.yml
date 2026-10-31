@@ -1,0 +1,28 @@
+# AOIE local stack: API (engine) + dashboard.
+# SQLite for the MVP; a Postgres service is a hardening-phase follow-up.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - "8000:8000"
+    volumes:
+      - aoie_data:/data
+    environment:
+      - AOIE_DB_URL=sqlite:////data/aoie.db
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      # Browser calls the API on the host-exposed port.
+      - NEXT_PUBLIC_API_BASE=http://localhost:8000
+    depends_on:
+      - api
+
+volumes:
+  aoie_data:

@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+apps/dashboard/.next/
+*.sqlite
+*.db
+aoie.db
+.git/
+benchmark/reports/*.json

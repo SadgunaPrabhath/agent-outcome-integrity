@@ -1,0 +1,15 @@
+# AOIE dashboard image (Next.js).
+FROM node:20-slim AS build
+WORKDIR /app
+COPY apps/dashboard/package*.json ./
+RUN npm ci || npm install
+COPY apps/dashboard ./
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+FROM node:20-slim AS run
+WORKDIR /app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
+COPY --from=build /app ./
+EXPOSE 3000
+CMD ["npm", "run", "start"]

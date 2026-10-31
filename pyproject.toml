@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-outcome-integrity"
+version = "0.1.0"
+description = "AOIE — an independent outcome-verification and recovery layer that checks whether AI agents actually achieved the persistent state they claim to have achieved."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Prabhath" }]
+dependencies = [
+    "pydantic>=2.6",
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+]
+
+[project.optional-dependencies]
+# Kept out of the core so the engine stays importable/testable without them.
+api = ["fastapi>=0.110", "uvicorn[standard]>=0.29", "httpx>=0.27"]
+demo = ["fastapi>=0.110", "uvicorn[standard]>=0.29", "httpx>=0.27"]
+browser = ["playwright>=1.42", "httpx>=0.27"]
+llm = ["anthropic>=0.40", "httpx>=0.27"]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.3",
+    "mypy>=1.9",
+    "httpx>=0.27",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+]
+
+[tool.setuptools.packages.find]
+include = ["engine*", "adapters*", "benchmark*", "environments*", "persistence*", "apps*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+# Deselect browser/external tests by default so the suite runs anywhere with no
+# skips; opt in with `pytest -m live` after installing the browser extra.
+addopts = "-m 'not live'"
+markers = [
+    "live: requires a real browser or external service (opt in with -m live)",
+]
+filterwarnings = [
+    # Third-party (starlette/anyio) deprecation surfaced via TestClient import.
+    "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# RUF022: we group __all__ by source module (with comments) on purpose.
+ignore = ["RUF022"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_ignores = true
+disallow_untyped_defs = true

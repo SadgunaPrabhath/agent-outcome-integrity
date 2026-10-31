@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# AOIE local artifacts
+*.sqlite
+*.db
+aoie.db
+evidence_store/
+runs/
+reports/*.json
+# Per-run benchmark snapshots are noise; only the *latest.{md,json} are tracked.
+benchmark/reports/benchmark_*.json
+benchmark/reports/benchmark_*.md
+benchmark/reports/browser_*T*Z.json
+benchmark/reports/browser_*T*Z.md
+
+# Node / dashboard
+node_modules/
+.next/
+dist/
+
+# Env / secrets — never commit
+.env
+.env.local
+*.pem
+*.key
+
+# Keep the current reproducible benchmark JSON report with its Markdown summary.
+!benchmark/reports/latest.json
